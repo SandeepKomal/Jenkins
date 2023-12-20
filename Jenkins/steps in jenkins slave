@@ -1,0 +1,11 @@
+#steps in jenkins slave before and after running the pipeline 
+cat /etc/passwd ------> no of users available 
+sudo su - username -----> switch the user
+aws configure ------> to get the access to the folders need to give the acess key and password.
+aws eks list-clusters ------> To list your available clusters
+aws eks update-kubeconfig --name example --------> To update a kubeconfig and give the clustername
+kubectl get nodes
+kubectl get pods
+kubectl get deploy
+kubectl get svc
+kubectl logs podname.
