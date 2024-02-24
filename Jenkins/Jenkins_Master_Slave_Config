@@ -103,3 +103,4 @@ Note: Connect to your slave node
 4) Create the credentials on the Jenkins Master using this keypair and username(jenkins-slave1)
 
 Note: Allocate 200MB disk space for master and slave in Jenkins dashboard
+
