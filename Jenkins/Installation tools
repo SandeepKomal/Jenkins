@@ -49,6 +49,8 @@ sudo yum install git -y
 
 6) sudo setfacl -m user:jenkins-slave1:rw /var/run/docker.sock
 
+7) sudo service docker status
+
 
 ##################### Install Trivy for docker scanning docker image ####################
 
