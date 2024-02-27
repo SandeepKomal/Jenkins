@@ -1,0 +1,71 @@
+pipeline {
+    agent { label "slave1" }
+    
+    environment {
+        AWS_ACCOUNT_ID = "637423236688"
+        GIT_URL = "https://github.com/SandeepKomal/customer.git"
+        AWS_DEFAULT_REGION = "us-east-1"
+        IMAGE_NAME = "spring"
+        IMAGE_TAG = "${currentBuild.number}" // Using Jenkins provided BUILD_NUMBER for unique tagging
+        REPOSITORY_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_NAME}:${IMAGE_TAG}"
+        
+    }
+    
+    stages {
+        stage("Cloning git repository") {
+            steps {
+                git branch: 'main', credentialsId: 'git_credentials', url: "${GIT_URL}"
+            }
+        }
+        
+        stage("Sonar Qube Scan") {
+            steps {
+                sh "mvn clean verify sonar:sonar -Dsonar.token=${SONAR_TOKEN} -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=tektrio -Dsonar.projectKey=tektrio_customer1"
+                
+            }
+            
+        }
+        
+        stage("Build jar file using Maven") {
+            steps {
+                sh "mvn clean install"
+            }
+        }
+        
+        
+        
+        stage("Build docker image") {
+            steps {
+                script {
+                    dockerImage = docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
+                }
+            }
+        }
+        
+   
+        stage("Logging into AWS ECR and push docker image") {
+            steps {  
+                script {
+                    sh "aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
+                    sh "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${REPOSITORY_URI}"
+                    sh "docker push ${REPOSITORY_URI}"
+                }
+            }
+        }
+     
+        stage('K8S deploy') {
+            steps {
+                withKubeConfig(
+                    clusterName: '',
+                    credentialsId: 'kube_config',
+                    serverUrl: '',
+                    caCertificate: '',
+                    namespace: '',
+                    contextName: ''
+                ) {
+                    sh "kustomize edit set image ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_NAME}:44=${REPOSITORY_URI} && kubectl apply -k ."
+                }
+            }
+        }
+    }
+}
