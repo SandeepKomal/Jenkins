@@ -29,17 +29,6 @@ sudo systemctl start jenkins
 ```
 systemctl status jenkins
 ```
-### Install  Kustomize CLI tool on EC2:
-
-```
-curl --silent --location --remote-name \
-  "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v3.2.3/kustomize_kustomize.v3.2.3_linux_amd64" && \
-  chmod a+x kustomize_kustomize.v3.2.3_linux_amd64 && \
-  sudo mv kustomize_kustomize.v3.2.3_linux_amd64 /usr/local/bin/kustomize
-```
-```
-kustomize version
-```
 ### Assign Root Privileges to Jenkins User
 
 ```
@@ -49,25 +38,12 @@ sudo vi /etc/sudoers
 jenkins ALL=(ALL) NOPASSWD: ALL
 ```
 
-### Install  eksctl CLI tool on EC2 :
+### Restart Jenkins server and enable it
+```
+sudo service jenkins restart
+```
+```
+sudo systemctl enable jenkins
+```
 
-for ARM systems, set ARCH to: `arm64`, `armv6` or `armv7`
-
-```
-ARCH=amd64
-PLATFORM=$(uname -s)_$ARCH
-```
-```
-curl -sLO "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_$PLATFORM.tar.gz"
-```
-(Optional) Verify checksum
-```
-curl -sL "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_checksums.txt" | grep $PLATFORM | sha256sum --check
-```
-```
-tar -xzf eksctl_$PLATFORM.tar.gz -C /tmp && rm eksctl_$PLATFORM.tar.gz
-```
-```
-sudo mv /tmp/eksctl /usr/local/bin
-```
 
