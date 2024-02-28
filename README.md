@@ -115,6 +115,21 @@ sudo chown jenkins:jenkins known_hosts
 ```
 sudo chmod 700 known_hosts
 ```
+### Copy the key-pair from jenkins slave node
+
+#### Note: Connect to your slave node
+```
+sudo su - jenkins-slave1
+```
+```
+cd .ssh
+```
+```
+cat id_ed25519
+```
+#### Create the credentials on the Jenkins Master using this keypair and username(jenkins-slave1)
+
+#### Note: Allocate 200MB disk space for master and slave in Jenkins dashboard
 
 
 
