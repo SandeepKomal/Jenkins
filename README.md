@@ -131,7 +131,8 @@ cat id_ed25519
 
 #### Note: Allocate 200MB disk space for master and slave in Jenkins dashboard
 
-![Jenkins Disk Space (1)](https://github.com/SandeepKomal/Jenkins/assets/99358567/c6536d2e-fbb6-4aeb-9ebf-6fa11321406d)
+![Free space Threshold Jenkins](https://github.com/SandeepKomal/Jenkins/assets/99358567/2a2f4df0-1483-4350-b171-72eddca7c066)
+
 
 
 
