@@ -91,5 +91,30 @@ cat id_ed25519.pub > authorized_keys
 ```
 chmod 700 authorized_keys
 ```
+### Configure Jenkins Master with Slave Node
+
+#### Note:Execute the below commands on Master Node
+```
+sudo mkdir -p /var/lib/jenkins/.ssh
+```
+```
+cd /var/lib/jenkins/
+```
+```
+sudo chmod 777 .ssh
+```
+```
+sudo ssh-keyscan -H  private-ipaddress-slave-node >>/var/lib/jenkins/.ssh/known_hosts
+```
+```
+cd .ssh
+```
+```
+sudo chown jenkins:jenkins known_hosts
+```
+```
+sudo chmod 700 known_hosts
+```
+
 
 
