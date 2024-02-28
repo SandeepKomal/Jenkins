@@ -1,4 +1,4 @@
-# ==== Install Jenkins Server on EC2 Machine(Master Node) ====
+# = Install Jenkins Server on EC2 Machine(Master Node) =
 
 ### Update Linux Packages
 
@@ -45,7 +45,7 @@ sudo service jenkins restart
 ```
 sudo systemctl enable jenkins
 ```
-# ==== Create new Ec2 Instance and configure Slave Node ====
+# = Create new Ec2 Instance and configure Slave Node =
 
 ### Update Linux Packages
 
