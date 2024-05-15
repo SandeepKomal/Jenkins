@@ -1,15 +1,17 @@
-node('slave1')
+node('slave-1')
 {
-    def AWS_ACCOUNT_ID="637423236688"
-    def AWS_DEFAULT_REGION="us-east-1"
-    def IMAGE_NAME="spring"
-    def REPOSITORY_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_NAME}"
-    def CREDENTIAL_ID = 'jenkins_cred'
-    def GIT_URL = "https://github.com/SandeepKomal/Infra-App-Deployment.git"
+    def AWS_ACCOUNT_ID="851271747310"
+    def AWS_REGION="us-east-2"
+    def IMAGE_NAME="customer"
+    def REPOSITORY_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${IMAGE_NAME}"
+    def GIT_URL = "https://github.com/naveen-uppala/Infra-App-Deployment.git"
+    def CHART_NAME ="customer"
+    def CLUSTER_NAME="batch18-eks-cluster"
 
+try {     
     stage('Obtain Build Number') {
-        withCredentials([usernamePassword(credentialsId: "${CREDENTIAL_ID}", usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-            def buildNumber = sh(script: "curl -s -u ${USERNAME}:${PASSWORD} 'http://52.70.110.173:8080//job/HPM_CI/job/customer/lastSuccessfulBuild/buildNumber'", returnStdout: true).trim()
+        withCredentials([usernamePassword(credentialsId: 'jenkins_cred', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+            def buildNumber = sh(script: "curl -s -u ${USERNAME}:${PASSWORD} 'http://3.17.191.79:8080/job/HPM_CI/job/customer/lastSuccessfulBuild/buildNumber'", returnStdout: true).trim()
             env.buildNumber = buildNumber
             echo "The latest build number of HPM_CI is ${buildNumber}"
         }
@@ -18,16 +20,32 @@ node('slave1')
     stage("Cloning git repository") {
         git branch: 'main', credentialsId: 'git_credentials', url: GIT_URL
     }
-    
+     
     stage('K8S deploy') {
         withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
-        dir('Jenkins/App/Backend/customer') {
+        dir('App/Backend/') {
                     script {
                         withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'kube_config', namespace: '', serverUrl: '') {
-                            sh "kustomize edit set image ${REPOSITORY_URI}:default_tag=${REPOSITORY_URI}:${buildNumber} && kubectl apply -k ."
-                        }
+                            sh "aws eks --region $AWS_REGION update-kubeconfig --name $CLUSTER_NAME"
+                            sh "helm upgrade release-v1 --install ${CHART_NAME} --set image.tag=${buildNumber}"
                     }
-                   }
+                }
+            }
         }
     }
+
+} //try block closed
+
+    finally {
+            echo "Performing cleanup actions..."
+            cleanWs()
+            // Scripted cleanup for directories
+            dir("${env.WORKSPACE}@tmp") {
+                deleteDir()
+            }
+            
+        //  Cleanup all the unused docker images and containers
+        sh "docker system prune -a -f"    
+
+    } //finally block closed
 }
