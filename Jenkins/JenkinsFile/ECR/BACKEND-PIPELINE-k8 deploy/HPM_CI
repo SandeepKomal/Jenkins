@@ -7,9 +7,7 @@ node('slave-1') {
     def IMAGE_URI = "${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/${IMAGE_NAME}:${IMAGE_TAG}"
 
     try {
-        // Clean up unused Docker data before starting the build
-        sh "docker system prune -f"
-
+        
         stage("Cloning git repository") {
             git branch: 'main', credentialsId: 'git_credentials', url: GIT_URL
         }
@@ -37,10 +35,19 @@ node('slave-1') {
                 }
             }
         }
-    
         
-    } finally {
-        // Clean up the workspace
-        deleteDir()
     }
+    
+    finally {
+            echo "Performing cleanup actions..."
+            cleanWs()
+            // Scripted cleanup for directories
+            dir("${env.WORKSPACE}@tmp") {
+                deleteDir()
+            }
+            
+        //  Cleanup all the unused docker images and containers
+        sh "docker system prune -a -f"    
+    }
+
 }
