@@ -1,10 +1,11 @@
 node('slave-1') {
     def ACCOUNT_ID = "851271747310"
     def REGION = "us-east-2"
-    def GIT_URL = "https://github.com/naveen-uppala/customer.git"
+    def GIT_URL = "https://github.com/SandeepKomal/customer.git"
     def IMAGE_NAME = "customer"
     def IMAGE_TAG = "${currentBuild.number}"
     def IMAGE_URI = "${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/${IMAGE_NAME}:${IMAGE_TAG}"
+    def TRIVY_REPORT = "trivy_report.txt"
 
     try {
         
@@ -13,7 +14,7 @@ node('slave-1') {
         }
 
         stage("Sonar Qube Scan") {
-            sh "mvn clean verify sonar:sonar -Dsonar.token=${SONAR_TOKEN} -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=tcn -Dsonar.projectKey=tcn_customer"
+            sh "mvn clean verify sonar:sonar -Dsonar.token=${SONAR_TOKEN} -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=tektrio -Dsonar.projectKey=tektrio_tektrio-new"
         }
 
         stage("Build docker image") {
@@ -25,6 +26,10 @@ node('slave-1') {
         stage("Scan the docker Image") {
             sh "trivy image ${IMAGE_NAME}:${IMAGE_TAG}"
         }
+        stage("Scan the docker Image") {
+            sh "trivy image ${IMAGE_NAME}:${IMAGE_TAG} > ${TRIVY_REPORT}"
+            sh "cat ${TRIVY_REPORT}"
+        }
 
         stage("Logging into AWS ECR and push docker image") {
             withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
@@ -35,6 +40,18 @@ node('slave-1') {
                 }
             }
         }
+        
+        // stage("Send Trivy Report via Email") {
+        //     emailext(
+        //         to: 'sandeepkomalp@gmail.com',
+        //         subject: "Trivy Scan Report for ${IMAGE_NAME}:${IMAGE_TAG}",
+        //         body: """<p>Hi Team,</p>
+        //                  <p>Please find attached the Trivy scan report for the Docker image ${IMAGE_NAME}:${IMAGE_TAG}.</p>
+        //                  <p>Best Regards,<br>Jenkins</p>""",
+        //         attachLog: true,
+        //         attachmentsPattern: TRIVY_REPORT
+        //     )
+        // }
         
     }
     
