@@ -41,17 +41,17 @@ node('slave-1') {
             }
         }
         
-        // stage("Send Trivy Report via Email") {
-        //     emailext(
-        //         to: 'sandeepkomalp@gmail.com',
-        //         subject: "Trivy Scan Report for ${IMAGE_NAME}:${IMAGE_TAG}",
-        //         body: """<p>Hi Team,</p>
-        //                  <p>Please find attached the Trivy scan report for the Docker image ${IMAGE_NAME}:${IMAGE_TAG}.</p>
-        //                  <p>Best Regards,<br>Jenkins</p>""",
-        //         attachLog: true,
-        //         attachmentsPattern: TRIVY_REPORT
-        //     )
-        // }
+        stage("Send Trivy Report via Email") {
+            emailext(
+                to: 'jenkinscustomer@gmail.com',
+                subject: "Trivy Scan Report for ${IMAGE_NAME}:${IMAGE_TAG}",
+                body: """<p>Hi Team,</p>
+                         <p>Please find attached the Trivy scan report for the Docker image ${IMAGE_NAME}:${IMAGE_TAG}.</p>
+                         <p>Best Regards,<br>Jenkins</p>""",
+                attachLog: true,
+                attachmentsPattern: TRIVY_REPORT
+            )
+        }
         
     }
     
