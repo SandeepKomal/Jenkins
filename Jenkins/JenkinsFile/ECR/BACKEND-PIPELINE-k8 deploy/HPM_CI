@@ -6,32 +6,74 @@ node('slave-1') {
     def IMAGE_TAG = "${currentBuild.number}"
     def IMAGE_URI = "${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/${IMAGE_NAME}:${IMAGE_TAG}"
     def TRIVY_REPORT = "trivy_report.txt"
+    def NVD_API_DELAY = '2000'
 
     try {
-        
         stage("Cloning git repository") {
             git branch: 'main', credentialsId: 'git_credentials', url: GIT_URL
         }
-
-        stage("Sonar Qube Scan") {
-            sh "mvn clean verify sonar:sonar -Dsonar.token=${SONAR_TOKEN} -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=tektrio -Dsonar.projectKey=tektrio_tektrio-new"
+        
+        stage("Compile") {
+            sh "mvn clean compile"
         }
 
-        stage("Build docker image") {
+        stage("Test Cases") {
+            sh "mvn test"
+        }
+
+        stage("Mvn Build") {
+            sh "mvn clean package"
+        }
+
+        stage('OWASP Dependency Check') {
+            withCredentials([string(credentialsId: 'nvd_api_key', variable: 'NVD_API_KEY')]) {
+                dependencyCheck additionalArguments: "--nvdApiKey=${NVD_API_KEY} --nvdApiDelay=${NVD_API_DELAY} --project customer --scan pom.xml --format ALL", odcInstallation: 'owasp'
+            }
+            sh "mkdir -p reports"
+            sh "mv dependency-check-report.html reports/dependency-check-report.html"
+            sh "mv dependency-check-report.xml reports/dependency-check-report.xml"
+            dependencyCheckPublisher pattern: 'reports/dependency-check-report.xml'
+        }
+
+        stage('Publish OWASP Dependency Check Report') {
+            publishHTML(target: [
+                allowMissing: false,
+                alwaysLinkToLastBuild: true,
+                keepAll: true,
+                reportDir: 'reports',
+                reportFiles: 'dependency-check-report.html',
+                reportName: 'OWASP Dependency Check Report'
+            ])
+        }
+
+        stage('Email OWASP Dependency Check Report') {
+            emailext (
+                subject: 'OWASP Dependency Check Report',
+                body: 'Please find attached the OWASP Dependency Check report.',
+                to: 'sandeepkomalp@gmail.com',
+                attachLog: false,
+                attachmentsPattern: '**/reports/dependency-check-report.html'
+            )
+        }
+
+        stage("Nexus Repo") {
+            configFileProvider([configFile(fileId: '298087e0-d79e-4602-a402-f068edcff15a', variable: 'maven_targets')]) {
+                sh "mvn -s $maven_targets clean deploy -DskipTests"
+            }
+        }
+
+        stage("Build Docker Image") {
             script {
                 dockerImage = docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
             }
         }
 
-        stage("Scan the docker Image") {
-            sh "trivy image ${IMAGE_NAME}:${IMAGE_TAG}"
-        }
-        stage("Scan the docker Image") {
+        stage("Scan the Docker Image") {
             sh "trivy image ${IMAGE_NAME}:${IMAGE_TAG} > ${TRIVY_REPORT}"
             sh "cat ${TRIVY_REPORT}"
         }
 
-        stage("Logging into AWS ECR and push docker image") {
+        stage("Logging into AWS ECR and Push Docker Image") {
             withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_credentials', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
                 script {
                     sh "aws ecr get-login-password --region ${REGION} | docker login --username AWS --password-stdin ${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
@@ -40,10 +82,10 @@ node('slave-1') {
                 }
             }
         }
-        
+
         stage("Send Trivy Report via Email") {
             emailext(
-                to: 'jenkinscustomer@gmail.com',
+                to: 'sandeepkomalp@gmail.com',
                 subject: "Trivy Scan Report for ${IMAGE_NAME}:${IMAGE_TAG}",
                 body: """<p>Hi Team,</p>
                          <p>Please find attached the Trivy scan report for the Docker image ${IMAGE_NAME}:${IMAGE_TAG}.</p>
@@ -52,10 +94,8 @@ node('slave-1') {
                 attachmentsPattern: TRIVY_REPORT
             )
         }
-        
-    }
-    
-    finally {
+
+   } finally {
             echo "Performing cleanup actions..."
             cleanWs()
             // Scripted cleanup for directories
