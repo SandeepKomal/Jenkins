@@ -87,9 +87,9 @@ node('slave-1') {
             emailext(
                 to: 'sandeepkomalp@gmail.com',
                 subject: "Trivy Scan Report for ${IMAGE_NAME}:${IMAGE_TAG}",
-                body: """<p>Hi Team,</p>
-                         <p>Please find attached the Trivy scan report for the Docker image ${IMAGE_NAME}:${IMAGE_TAG}.</p>
-                         <p>Best Regards,<br>Jenkins</p>""",
+                body: """Hi Team,
+                            Please find attached the Trivy scan report for the Docker image ${IMAGE_NAME}:${IMAGE_TAG}.
+                            Best Regards,<br>Jenkins""",
                 attachLog: true,
                 attachmentsPattern: TRIVY_REPORT
             )
