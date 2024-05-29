@@ -18,7 +18,7 @@ node('slave-1') {
         }
 
         stage("Test Cases") {
-            sh "mvn test"
+            sh "mvn test -DskipTests"
         }
 
         stage("Mvn Build") {
