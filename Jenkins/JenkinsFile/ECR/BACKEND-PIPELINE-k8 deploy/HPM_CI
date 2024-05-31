@@ -20,6 +20,10 @@ node('slave-1') {
         stage("Test Cases") {
             sh "mvn test -DskipTests"
         }
+        
+        stage("Sonar Qube Scan") {
+            sh "mvn clean verify sonar:sonar -Dsonar.token=${SONAR_TOKEN} -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=tektrio -Dsonar.projectKey=tektrio_customer"
+        }
 
         stage("Mvn Build") {
             sh "mvn clean package"
