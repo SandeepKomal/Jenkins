@@ -1,0 +1,22 @@
+name: New Jenkins Lab
+description: Suggest a practical Jenkins topic or lab
+title: "[LAB] "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem should this lab solve?
+      description: Describe the real DevOps scenario.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: What should the learner build?
+    validations:
+      required: true
+  - type: textarea
+    id: security
+    attributes:
+      label: Security considerations
+      description: Mention credentials, permissions, or trust boundaries.
