@@ -3,6 +3,7 @@ description: Suggest a practical Jenkins topic, automation pattern, or hands-on 
 title: "[LAB] "
 labels:
   - enhancement
+assignees: []
 body:
   - type: markdown
     attributes:
@@ -14,7 +15,7 @@ body:
     attributes:
       label: Problem to solve
       description: Describe the real DevOps or Jenkins scenario this lab should address.
-      placeholder: Example: A Jenkins pipeline needs to deploy to Kubernetes with a safe approval gate.
+      placeholder: "Example: A Jenkins pipeline needs to deploy to Kubernetes with a safe approval gate."
     validations:
       required: true
 
@@ -23,7 +24,7 @@ body:
     attributes:
       label: Expected learning outcome
       description: What should someone be able to build or understand after completing this lab?
-      placeholder: Example: Build a Declarative Pipeline with approval, rollout verification, and rollback.
+      placeholder: "Example: Build a Declarative Pipeline with approval, rollout verification, and rollback."
     validations:
       required: true
 
@@ -32,11 +33,11 @@ body:
     attributes:
       label: Suggested implementation
       description: Add useful tools, Jenkins plugins, pipeline stages, diagrams, or example environments.
-      placeholder: Example: Jenkins + Docker + ECR + Kubernetes + Trivy.
+      placeholder: "Example: Jenkins + Docker + ECR + Kubernetes + Trivy."
 
   - type: textarea
     id: security
     attributes:
       label: Security considerations
       description: Mention trust boundaries, permissions, secret handling, or other security concerns.
-      placeholder: Example: Use Jenkins Credentials and least-privilege Kubernetes RBAC.
+      placeholder: "Example: Use Jenkins Credentials and least-privilege Kubernetes RBAC."
