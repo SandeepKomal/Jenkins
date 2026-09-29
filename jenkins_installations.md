@@ -1,134 +1,74 @@
-# Install Jenkins Server on EC2 Machine(Master Node) 
+# Jenkins Installation and Agent Setup
 
-### Update Linux Packages
+This guide is a practical EC2 reference. For production, use supported Jenkins packages, least privilege and managed identity.
 
-```
-sudo yum -y update
-```
-###  Install Java 11 OR 17
-```
-sudo amazon-linux-extras install java-openjdk11 -y
-```
-```
-sudo yum install java-17-amazon-corretto-headless -y
+## 1. Prepare the controller
+
+Install a supported Java runtime and Jenkins using the official package repository for your operating system.
+
+```bash
+sudo systemctl enable --now jenkins
+sudo systemctl status jenkins
 ```
 
-###   Install Jenkins Server 
-```
-sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
-```
-```
-sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
-```
-```
-sudo yum install jenkins -y
-```
-```
-sudo systemctl start jenkins
-```
-```
-systemctl status jenkins
-```
-### Assign Root Privileges to Jenkins User
+Restrict Jenkins access with network controls rather than exposing the administrative interface broadly.
 
-```
-sudo vi /etc/sudoers  
-```
-```
-jenkins ALL=(ALL) NOPASSWD: ALL
+## 2. Do not grant Jenkins root
+
+Older notes in this repository used `NOPASSWD: ALL`. Do not copy that pattern into a production system. Use dedicated agents and grant only the permissions required by the pipeline.
+
+## 3. Create an agent
+
+Install the supported Java runtime and only the tools required by the workloads assigned to the agent:
+
+```text
+git
+java
+maven
+docker
+aws
+kubectl
+terraform
+trivy
 ```
 
-### Restart Jenkins server and enable it
-```
-sudo service jenkins restart
-```
-```
-sudo systemctl enable jenkins
-```
-#  Create new Ec2 Instance and configure Slave Node 
-### Update Linux Packages
+## 4. Connect the agent
 
-```
-sudo yum -y update
-```
-###  Install Java 11 OR 17
-```
-sudo amazon-linux-extras install java-openjdk11 -y
-```
-```
-sudo yum install java-17-amazon-corretto-headless -y
+Use a Jenkins-managed agent connection method such as SSH or inbound/WebSocket agents, depending on your environment. Store agent credentials in Jenkins Credentials; never commit private keys.
+
+## 5. Agent labels
+
+Give agents meaningful capability labels such as `linux`, `docker`, `kubernetes` or `terraform`.
+
+```groovy
+agent { label 'docker' }
 ```
 
-### setup jenkins slave
-```
-sudo su
-```
-```
-sudo useradd jenkins-slave1
-```
-```
-passwd jenkins-slave1 # set password for user jenkins-slave1
-```
-```
-sudo vi /etc/sudoers
-```
-```
-jenkins-slave1 ALL=(ALL) NOPASSWD: ALL
-```
-```
-sudo su - jenkins-slave1
-```
-```
-ssh-keygen -t ed25519  or ssh-keygen
-```
-```
-cd .ssh
-```
-```
-cat id_ed25519.pub > authorized_keys
-```
-```
-chmod 700 authorized_keys
-```
-### Configure Jenkins Master with Slave Node
+## 6. AWS access
 
-#### Note:Execute the below commands on Master Node
-```
-sudo mkdir -p /var/lib/jenkins/.ssh
-```
-```
-cd /var/lib/jenkins/
-```
-```
-sudo chmod 777 .ssh
-```
-```
-sudo ssh-keyscan -H  private-ipaddress-slave-node >>/var/lib/jenkins/.ssh/known_hosts
-```
-```
-cd .ssh
-```
-```
-sudo chown jenkins:jenkins known_hosts
-```
-```
-sudo chmod 700 known_hosts
-```
-### Copy the key-pair from jenkins slave node
+For EC2 agents, prefer an IAM instance profile with narrowly scoped permissions. Avoid storing long-lived AWS access keys in the agent filesystem. For external runners, use short-lived federation/OIDC where supported.
 
-#### Note: Connect to your slave node
-```
-sudo su - jenkins-slave1
-```
-```
-cd .ssh
-```
-```
-cat id_ed25519
-```
-#### Create the credentials on the Jenkins Master using this keypair and username(jenkins-slave1)
+## 7. Docker access
 
-#### Note: Allocate 200MB disk space for master and slave in Jenkins dashboard
+Docker access can provide highly privileged host capabilities. Do not make `/var/run/docker.sock` world-writable. Isolate Docker-capable agents and use the least-privilege design appropriate to your environment.
 
-![331707725-2de0de8a-11dd-4ad0-8c68-14cb1bfd1a7d](https://github.com/SandeepKomal/Jenkins/assets/99358567/fca84a54-ca8a-4662-817f-62bdfbca7b69)
+## 8. Verify the agent
 
+```bash
+java -version
+git --version
+docker --version
+aws --version
+kubectl version --client
+```
+
+Only the tools required by your pipeline need to be installed.
+
+## 9. Next steps
+
+- [Architecture](docs/architecture.md)
+- [Pipeline patterns](docs/pipeline-patterns.md)
+- [Security](docs/security.md)
+- [Troubleshooting](docs/troubleshooting.md)
+
+> Existing screenshots and historical notes remain in the repository, but credentials and privileged configuration should never be copied into source control.

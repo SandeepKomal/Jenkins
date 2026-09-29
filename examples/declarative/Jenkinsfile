@@ -1,0 +1,61 @@
+pipeline {
+  agent any
+
+  options {
+    timestamps()
+    disableConcurrentBuilds()
+  }
+
+  parameters {
+    choice(name: 'ENVIRONMENT', choices: ['dev', 'staging'], description: 'Demo target')
+  }
+
+  stages {
+    stage('Validate') {
+      steps {
+        sh 'git --version'
+        sh 'java -version'
+      }
+    }
+
+    stage('Checkout') {
+      steps { checkout scm }
+    }
+
+    stage('Build') {
+      steps {
+        sh '''
+          if [ -x ./mvnw ]; then
+            ./mvnw -B package
+          else
+            echo "No Maven wrapper found; add your project build command."
+          fi
+        '''
+      }
+    }
+
+    stage('Test') {
+      steps {
+        sh '''
+          if [ -x ./mvnw ]; then
+            ./mvnw -B test
+          else
+            echo "No Maven wrapper found; add your project test command."
+          fi
+        '''
+      }
+    }
+
+    stage('Deployment Gate') {
+      when { expression { params.ENVIRONMENT == 'staging' } }
+      steps { input message: 'Deploy to staging?', ok: 'Deploy' }
+    }
+  }
+
+  post {
+    always {
+      archiveArtifacts artifacts: 'target/*.jar', allowEmptyArchive: true
+      deleteDir()
+    }
+  }
+}

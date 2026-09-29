@@ -1,0 +1,20 @@
+pipeline {
+  agent any
+
+  options {
+    timestamps()
+    disableConcurrentBuilds()
+  }
+
+  stages {
+    stage('Checkout') { steps { checkout scm } }
+    stage('Build & Unit Test') { steps { echo 'Run the project build and unit tests here.' } }
+    stage('Static Analysis') { steps { echo 'Integrate SonarQube or another approved SAST/quality platform.' } }
+    stage('Dependency Scan') { steps { echo 'Integrate OWASP Dependency-Check or your approved SCA tool.' } }
+    stage('Build Container') { steps { echo 'Build an immutable image tagged with BUILD_NUMBER or Git SHA.' } }
+    stage('Container Scan') { steps { echo 'Example: trivy image --severity HIGH,CRITICAL --exit-code 1 "$IMAGE"' } }
+    stage('Publish') { steps { echo 'Push only after quality and security gates pass.' } }
+  }
+
+  post { always { deleteDir() } }
+}

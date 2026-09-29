@@ -1,0 +1,14 @@
+jenkins:
+  systemMessage: |
+    Jenkins CI/CD Learning Lab
+    Use least privilege and Jenkins Credentials.
+  numExecutors: 0
+  mode: EXCLUSIVE
+  disableRememberMe: true
+
+unclassified:
+  location:
+    url: http://localhost:8080/
+
+# Add environment-specific credentials, authorization and jobs through
+# JCasC overlays. Do not commit secrets here.

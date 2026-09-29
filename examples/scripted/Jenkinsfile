@@ -1,0 +1,29 @@
+node {
+  timestamps {
+    try {
+      stage('Checkout') {
+        checkout scm
+      }
+
+      stage('Build') {
+        sh 'echo "Build step — replace with your project command"'
+      }
+
+      stage('Test') {
+        sh 'echo "Test step — replace with your project command"'
+      }
+
+      stage('Package') {
+        sh 'echo "Package step — publish an immutable artifact"'
+      }
+
+      currentBuild.result = 'SUCCESS'
+    } catch (err) {
+      currentBuild.result = 'FAILURE'
+      throw err
+    } finally {
+      echo 'Build completed; inspect currentBuild.result in Jenkins.'
+      deleteDir()
+    }
+  }
+}
