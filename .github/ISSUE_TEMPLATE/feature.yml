@@ -1,22 +1,42 @@
 name: New Jenkins Lab
-description: Suggest a practical Jenkins topic or lab
+description: Suggest a practical Jenkins topic, automation pattern, or hands-on lab
 title: "[LAB] "
+labels:
+  - enhancement
 body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a Jenkins lab. Please describe the real-world problem and the learning outcome.
+
   - type: textarea
     id: problem
     attributes:
-      label: What problem should this lab solve?
-      description: Describe the real DevOps scenario.
+      label: Problem to solve
+      description: Describe the real DevOps or Jenkins scenario this lab should address.
+      placeholder: Example: A Jenkins pipeline needs to deploy to Kubernetes with a safe approval gate.
     validations:
       required: true
+
   - type: textarea
     id: outcome
     attributes:
-      label: What should the learner build?
+      label: Expected learning outcome
+      description: What should someone be able to build or understand after completing this lab?
+      placeholder: Example: Build a Declarative Pipeline with approval, rollout verification, and rollback.
     validations:
       required: true
+
+  - type: textarea
+    id: implementation
+    attributes:
+      label: Suggested implementation
+      description: Add useful tools, Jenkins plugins, pipeline stages, diagrams, or example environments.
+      placeholder: Example: Jenkins + Docker + ECR + Kubernetes + Trivy.
+
   - type: textarea
     id: security
     attributes:
       label: Security considerations
-      description: Mention credentials, permissions, or trust boundaries.
+      description: Mention trust boundaries, permissions, secret handling, or other security concerns.
+      placeholder: Example: Use Jenkins Credentials and least-privilege Kubernetes RBAC.
