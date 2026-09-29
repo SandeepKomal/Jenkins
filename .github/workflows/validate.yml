@@ -19,7 +19,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if grep -RInE --exclude-dir=.git --exclude='*.png' --exclude='*.docx' '(AKIA[0-9A-Z]{16}|BEGIN (RSA|OPENSSH|EC|DSA) PRIVATE KEY|sonar.token=)' .; then
+
+          # Scan repository content while excluding the detector itself.
+          # The workflow necessarily contains the regexes it is searching for.
+          if grep -RInE             --exclude-dir=.git             --exclude='*.png'             --exclude='*.docx'             --exclude='validate.yml'             '(AKIA[0-9A-Z]{16}|BEGIN (RSA|OPENSSH|EC|DSA) PRIVATE KEY|sonar.token=)'             .; then
             echo "Potential credential material found."
             exit 1
           fi
@@ -28,11 +31,17 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          while IFS= read -r -d '' file; do bash -n "$file"; done < <(find scripts -type f -name '*.sh' -print0)
+          while IFS= read -r -d '' file; do
+            bash -n "$file"
+          done < <(find scripts -type f -name '*.sh' -print0)
 
       - name: Check learning assets
+        shell: bash
         run: |
+          set -euo pipefail
           test -s README.md
           test -s docs/architecture.md
           test -s docs/security.md
           test -s examples/declarative/Jenkinsfile
+          test -s examples/scripted/Jenkinsfile
+          test -s examples/declarative/Jenkinsfile-devsecops
